@@ -5,6 +5,47 @@ const User = require('./users/model')
 const server = express()
 server.use(express.json())
 
+// put
+server.put('/api/users/:id', async (req, res) => {
+    try {
+        const possibleUser = await User.findById(req.params.id)
+        if (!possibleUser){
+            res.status(404).json({
+                message: 'The user with the specified ID does not exist',
+            })
+        } else {
+            if(!req.body.name || !req.body.bio){
+                res.status(400).json({
+                    message: 'Please provide name and bio forthe user',
+                })
+            } else {
+              const updatedUser = await User.update(req.params.id, req.body)
+              res.status(200).json(updatedUser)
+            }
+        }
+    } catch (err) {
+        res.status(500).json({
+            message: 'error updating user',
+            err: err.message,
+            stack: err.stack,
+        })
+    }
+});
+
+// delete
+server.delete('/api/users/:id', async (req, res) => {
+    const possibleUser = await User.findById(req.params.id)
+    if(!possibleUser) {
+        res.status(404).json({
+            message: 'The user with the specified ID does not exist',
+        })
+    } else {
+        const deletedUser = await User.remove(possibleUser.id)
+        res.status(200).json(deletedUser)
+    } 
+
+});
+
 // post
 server.post('/api/users', (req, res) => {
     const user = req.body;
@@ -68,26 +109,5 @@ server.use('*', (req, res) => {
     })
 })
 
-
-
-// // delete
-// server.delete('/api/users/:id', async (req, res) => {
-//     const user = await(req.params.id)
-//     if (user){
-//         res.status(200).json(user);
-//     } else {
-//         res.status(404).json({message: 'User not found'});
-//     }
-// });
-
-// // put
-// server.put('/api/users/:id', async (req, res) => {
-//     const user = await update(req.params.id, req.body);
-//     if(user){
-//         res.status(200).json(user);
-//     } else {
-//         res.status(404).json({message: 'User not found'});
-//     }
-// });
 
 module.exports = server; //exporting server. 
